@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type JSX } from "react";
 
 export default function App() {
   const [page, setPage] = useState<"drive" | "shared">("drive");
