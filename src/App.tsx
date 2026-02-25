@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 export default function App() {
+  const [page, setPage] = useState<"drive" | "shared">("drive");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [query, setQuery] = useState("");
   const [shareOpen, setShareOpen] = useState(false);
@@ -45,8 +46,8 @@ export default function App() {
         {/* Sidebar */}
         <aside className="col-span-3 xl:col-span-2">
           <nav className="space-y-1">
-            <SideLink label="マイドライブ" active icon={<DriveIcon/>}/>
-            <SideLink label="共有" icon={<ShareIcon/>}/>
+            <SideLink label="マイドライブ" active={page==="drive"} icon={<DriveIcon/>} onClick={()=>setPage("drive")}/>
+            <SideLink label="共有" icon={<ShareIcon/>} active={page==="shared"} onClick={()=>setPage("shared")}/>
             <SideLink label="リクエスト" icon={<KeyholeIcon/>}/>
             <SideLink label="最近" icon={<ClockIcon/>}/>
             <SideLink label="アーカイブ" icon={<ArchiveIcon/>}/>
@@ -68,61 +69,65 @@ export default function App() {
         </aside>
 
         {/* Main */}
-        <main className="col-span-9 xl:col-span-10">
-          <div className="flex items-center justify-between">
-            <Breadcrumb segments={["マイドライブ", "Projects"]}/>
-            <div className="flex items-center gap-2">
-              <button onClick={()=>setView("grid")} className={`rounded-lg px-2.5 py-2 text-sm border ${view==='grid'?'bg-slate-900 text-white border-slate-900':'border-slate-200 bg-white hover:bg-slate-50'}`}>グリッド</button>
-              <button onClick={()=>setView("list")} className={`rounded-lg px-2.5 py-2 text-sm border ${view==='list'?'bg-slate-900 text-white border-slate-900':'border-slate-200 bg-white hover:bg-slate-50'}`}>リスト</button>
-              <button className="rounded-lg px-2.5 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-50">並び替え</button>
-            </div>
-          </div>
-
-          <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
-            <div className="flex items-center gap-3">
-              <KeyholeIcon className="w-5 h-5 text-cyan-600"/>
-              <div className="text-sm text-slate-700">TOBARIは <strong>鍵を渡さず権限だけを通す</strong> 共有です。アカウントでもリンクでもない、第三の共有。</div>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            {view === "grid" ? (
-              <div className="grid md:grid-cols-3 sm:grid-cols-2 gap-4">
-                {filtered.map(item => (
-                  <Card key={item.id} item={item} onShare={(it)=>{setSelected(it); setShareOpen(true);}}/>
-                ))}
+        {page === "drive" ? (
+          <main className="col-span-9 xl:col-span-10">
+            <div className="flex items-center justify-between">
+              <Breadcrumb segments={["マイドライブ", "Projects"]}/>
+              <div className="flex items-center gap-2">
+                <button onClick={()=>setView("grid")} className={`rounded-lg px-2.5 py-2 text-sm border ${view==='grid'?'bg-slate-900 text-white border-slate-900':'border-slate-200 bg-white hover:bg-slate-50'}`}>グリッド</button>
+                <button onClick={()=>setView("list")} className={`rounded-lg px-2.5 py-2 text-sm border ${view==='list'?'bg-slate-900 text-white border-slate-900':'border-slate-200 bg-white hover:bg-slate-50'}`}>リスト</button>
+                <button className="rounded-lg px-2.5 py-2 text-sm border border-slate-200 bg-white hover:bg-slate-50">並び替え</button>
               </div>
-            ) : (
-              <table className="w-full text-sm bg-white border border-slate-200 rounded-xl overflow-hidden">
-                <thead className="bg-slate-50 text-slate-500">
-                  <tr className="text-left">
-                    <th className="px-4 py-2 font-medium">名前</th>
-                    <th className="px-4 py-2 font-medium">ラベル</th>
-                    <th className="px-4 py-2 font-medium">更新日</th>
-                    <th className="px-4 py-2 font-medium">サイズ</th>
-                    <th className="px-4 py-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center gap-3">
+                <KeyholeIcon className="w-5 h-5 text-cyan-600"/>
+                <div className="text-sm text-slate-700">TOBARIは <strong>鍵を渡さず権限だけを通す</strong> 共有です。アカウントでもリンクでもない、第三の共有。</div>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              {view === "grid" ? (
+                <div className="grid md:grid-cols-3 sm:grid-cols-2 gap-4">
                   {filtered.map(item => (
-                    <tr key={item.id} className="border-t border-slate-100">
-                      <td className="px-4 py-3 flex items-center gap-2">
-                        <TypeIcon type={item.type} ext={item.ext}/>
-                        <span className="font-medium">{item.name}</span>
-                      </td>
-                      <td className="px-4 py-3"><Badge label={item.label}/></td>
-                      <td className="px-4 py-3 text-slate-600">{item.updated}</td>
-                      <td className="px-4 py-3 text-slate-600">{item.size || "—"}</td>
-                      <td className="px-4 py-3 text-right">
-                        <button onClick={()=>{setSelected(item); setShareOpen(true);}} className="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50">共有</button>
-                      </td>
-                    </tr>
+                    <Card key={item.id} item={item} onShare={(it)=>{setSelected(it); setShareOpen(true);}}/>
                   ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </main>
+                </div>
+              ) : (
+                <table className="w-full text-sm bg-white border border-slate-200 rounded-xl overflow-hidden">
+                  <thead className="bg-slate-50 text-slate-500">
+                    <tr className="text-left">
+                      <th className="px-4 py-2 font-medium">名前</th>
+                      <th className="px-4 py-2 font-medium">ラベル</th>
+                      <th className="px-4 py-2 font-medium">更新日</th>
+                      <th className="px-4 py-2 font-medium">サイズ</th>
+                      <th className="px-4 py-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map(item => (
+                      <tr key={item.id} className="border-t border-slate-100">
+                        <td className="px-4 py-3 flex items-center gap-2">
+                          <TypeIcon type={item.type} ext={item.ext}/>
+                          <span className="font-medium">{item.name}</span>
+                        </td>
+                        <td className="px-4 py-3"><Badge label={item.label}/></td>
+                        <td className="px-4 py-3 text-slate-600">{item.updated}</td>
+                        <td className="px-4 py-3 text-slate-600">{item.size || "—"}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button onClick={()=>{setSelected(item); setShareOpen(true);}} className="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50">共有</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </main>
+        ) : (
+          <SharedOutPage />
+        )}
       </div>
 
       {shareOpen && selected && (
@@ -207,6 +212,328 @@ const PRESETS: Preset[] = [
   },
 ];
 
+// ─── SharedOutPage ────────────────────────────────────────────────────────────
+
+interface ShareEntry {
+  id: string;
+  fileName: string;
+  fileType: "folder" | "file";
+  fileExt?: string;
+  presetId: string;
+  presetLabel: string;
+  presetIcon: string;
+  condition: string;
+  tags: string[];
+  status: "active" | "expired" | "revoked";
+  expiry?: string;
+  createdAt: string;
+  accessCount: number;
+  maxAccess?: number;
+  enabled: boolean;
+  link: string;
+  logs: { id: string; user: string; at: string; result: "granted" | "denied" }[];
+}
+
+const SHARE_ENTRIES: ShareEntry[] = [
+  {
+    id: "se-1",
+    fileName: "CryptoShepherds_Whitepaper.pdf",
+    fileType: "file",
+    fileExt: "pdf",
+    presetId: "purchase",
+    presetLabel: "購入者限定",
+    presetIcon: "🛒",
+    condition: "「Web3入門セミナー」の購入者",
+    tags: ["購入証明あり", "返金後自動失効"],
+    status: "active",
+    expiry: "2026-03-31",
+    createdAt: "2026-01-15",
+    accessCount: 15,
+    maxAccess: 100,
+    enabled: true,
+    link: "https://tobari.app/open/RES-doc-1?gate=purchase",
+    logs: [
+      { id: "l1", user: "alice@example.com", at: "2026-01-28 14:32", result: "granted" },
+      { id: "l2", user: "bob@company.com", at: "2026-01-29 09:10", result: "granted" },
+      { id: "l3", user: "unknown@test.com", at: "2026-01-30 18:45", result: "denied" },
+    ],
+  },
+  {
+    id: "se-2",
+    fileName: "Product_PRD.md",
+    fileType: "file",
+    fileExt: "md",
+    presetId: "subscription",
+    presetLabel: "メンバー限定",
+    presetIcon: "💳",
+    condition: "プレミアムプランの会員",
+    tags: ["有効期間中のみ", "解約後即失効"],
+    status: "active",
+    expiry: undefined,
+    createdAt: "2026-01-20",
+    accessCount: 8,
+    enabled: true,
+    link: "https://tobari.app/open/RES-doc-2?gate=subscription",
+    logs: [
+      { id: "l4", user: "carol@startup.io", at: "2026-02-01 10:22", result: "granted" },
+      { id: "l5", user: "dave@startup.io", at: "2026-02-03 16:05", result: "granted" },
+    ],
+  },
+  {
+    id: "se-3",
+    fileName: "TOBARI Design",
+    fileType: "folder",
+    presetId: "event",
+    presetLabel: "イベント参加者限定",
+    presetIcon: "🎪",
+    condition: "2026 Web3カンファレンス参加者",
+    tags: ["参加証明あり"],
+    status: "expired",
+    expiry: "2026-01-31",
+    createdAt: "2026-01-10",
+    accessCount: 24,
+    enabled: false,
+    link: "https://tobari.app/open/RES-fld-2?gate=event",
+    logs: [
+      { id: "l6", user: "erin@web3conf.jp", at: "2026-01-12 09:30", result: "granted" },
+      { id: "l7", user: "frank@web3conf.jp", at: "2026-01-15 11:15", result: "granted" },
+      { id: "l8", user: "grace@other.com", at: "2026-01-16 14:00", result: "denied" },
+    ],
+  },
+  {
+    id: "se-4",
+    fileName: "Arweave_Access_Policy.json",
+    fileType: "file",
+    fileExt: "json",
+    presetId: "community",
+    presetLabel: "コミュニティ限定",
+    presetIcon: "🏘️",
+    condition: "暗号屋プロジェクトメンバー",
+    tags: ["メンバーシップ確認"],
+    status: "active",
+    expiry: "2026-06-30",
+    createdAt: "2026-02-01",
+    accessCount: 3,
+    enabled: true,
+    link: "https://tobari.app/open/RES-doc-3?gate=community",
+    logs: [
+      { id: "l9", user: "henry@ango-ya.org", at: "2026-02-05 13:00", result: "granted" },
+    ],
+  },
+];
+
+function SharedOutPage() {
+  const [filter, setFilter] = useState<"all" | "active" | "expired" | "revoked">("all");
+  const [entries, setEntries] = useState(SHARE_ENTRIES);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const filtered = entries.filter(e => {
+    if (filter === "all") return true;
+    if (filter === "active") return e.status === "active" && e.enabled;
+    if (filter === "expired") return e.status === "expired";
+    if (filter === "revoked") return !e.enabled && e.status !== "expired";
+    return true;
+  });
+
+  const stats = {
+    active: entries.filter(e => e.status === "active" && e.enabled).length,
+    totalAccess: entries.reduce((sum, e) => sum + e.accessCount, 0),
+    denied: entries.flatMap(e => e.logs).filter(l => l.result === "denied").length,
+  };
+
+  function toggleEntry(id: string) {
+    setEntries(prev => prev.map(e => e.id === id ? { ...e, enabled: !e.enabled } : e));
+  }
+
+  function copyLink(id: string, link: string) {
+    navigator.clipboard.writeText(link);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  return (
+    <main className="col-span-9 xl:col-span-10">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">共有済み</h1>
+          <p className="text-sm text-slate-500 mt-0.5">あなたが発行した条件付き共有リンクの管理</p>
+        </div>
+        <div className="flex items-center gap-3 text-sm">
+          <div className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-center">
+            <div className="text-2xl font-bold text-emerald-600">{stats.active}</div>
+            <div className="text-xs text-slate-500">有効中</div>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-center">
+            <div className="text-2xl font-bold text-slate-900">{stats.totalAccess}</div>
+            <div className="text-xs text-slate-500">総アクセス</div>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-center">
+            <div className="text-2xl font-bold text-amber-600">{stats.denied}</div>
+            <div className="text-xs text-slate-500">条件未満たず</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter tabs */}
+      <div className="flex items-center gap-1.5 mb-4">
+        {([
+          { key: "all", label: "すべて" },
+          { key: "active", label: "有効中" },
+          { key: "expired", label: "期限切れ" },
+          { key: "revoked", label: "無効" },
+        ] as const).map(({ key, label }) => {
+          const count =
+            key === "all" ? entries.length :
+            key === "active" ? entries.filter(e => e.status === "active" && e.enabled).length :
+            key === "expired" ? entries.filter(e => e.status === "expired").length :
+            entries.filter(e => !e.enabled && e.status !== "expired").length;
+          return (
+            <button
+              key={key}
+              onClick={() => setFilter(key)}
+              className={`rounded-lg px-3 py-1.5 text-sm border transition ${
+                filter === key ? "bg-slate-900 text-white border-slate-900" : "bg-white border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {label}
+              <span className={`ml-1.5 text-[11px] ${filter === key ? "text-slate-400" : "text-slate-400"}`}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* List */}
+      <div className="space-y-3">
+        {filtered.map(entry => (
+          <div key={entry.id} className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+            {/* Main row */}
+            <div className="flex items-center gap-4 px-5 py-4">
+              {/* File info */}
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
+                  <TypeIcon type={entry.fileType} ext={entry.fileExt}/>
+                </div>
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{entry.fileName}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">{entry.createdAt} に共有</div>
+                </div>
+              </div>
+
+              {/* Condition */}
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-lg">{entry.presetIcon}</span>
+                <div>
+                  <div className="text-xs font-medium text-slate-700">{entry.presetLabel}</div>
+                  <div className="text-[11px] text-slate-500 max-w-[14ch] truncate" title={entry.condition}>{entry.condition}</div>
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div className="hidden xl:flex flex-wrap gap-1 max-w-[160px]">
+                {entry.tags.map((tag, i) => (
+                  <span key={i} className="inline-flex rounded-full bg-gradient-to-r from-[#3B5BDB] via-[#15AABF] to-[#0EA5E9] text-white px-2 py-0.5 text-[10px] font-medium">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* Status + expiry */}
+              <div className="text-center shrink-0">
+                <StatusBadge status={entry.status} enabled={entry.enabled}/>
+                {entry.expiry && (
+                  <div className="text-[11px] text-slate-400 mt-0.5">～{entry.expiry}</div>
+                )}
+              </div>
+
+              {/* Access count */}
+              <div className="text-center shrink-0">
+                <div className="text-lg font-bold text-slate-900">{entry.accessCount}</div>
+                <div className="text-[11px] text-slate-400">
+                  アクセス{entry.maxAccess ? ` / ${entry.maxAccess}` : ""}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => copyLink(entry.id, entry.link)}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs hover:bg-slate-50 transition whitespace-nowrap"
+                >
+                  {copiedId === entry.id ? "✓ コピー済み" : "リンクをコピー"}
+                </button>
+                <Toggle
+                  enabled={entry.enabled && entry.status !== "expired"}
+                  disabled={entry.status === "expired"}
+                  onChange={() => toggleEntry(entry.id)}
+                />
+                <button
+                  onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
+                  className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs hover:bg-slate-50 text-slate-500"
+                >
+                  {expandedId === entry.id ? "▲" : "▼"}
+                </button>
+              </div>
+            </div>
+
+            {/* Expanded: access log */}
+            {expandedId === entry.id && (
+              <div className="border-t border-slate-100 bg-slate-50 px-5 py-4">
+                <div className="text-xs font-medium text-slate-600 mb-3">アクセスログ</div>
+                <div className="space-y-2">
+                  {entry.logs.map(log => (
+                    <div key={log.id} className="flex items-center gap-3 text-xs">
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${log.result === "granted" ? "bg-emerald-500" : "bg-red-400"}`}/>
+                      <span className="text-slate-500 shrink-0">{log.at}</span>
+                      <span className="text-slate-700 flex-1">{log.user}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                        log.result === "granted"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-red-50 text-red-600"
+                      }`}>
+                        {log.result === "granted" ? "アクセス許可" : "条件未満たず"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <button className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs hover:bg-slate-50">全ログを見る</button>
+                  <button className="rounded-lg border border-red-200 text-red-600 bg-white px-3 py-1.5 text-xs hover:bg-red-50">この共有を削除</button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {filtered.length === 0 && (
+          <div className="rounded-xl border border-slate-200 bg-white px-5 py-16 text-center text-slate-400">
+            <div className="text-4xl mb-3">🔒</div>
+            <div className="text-sm">共有済みのファイルはありません</div>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
+
+function StatusBadge({ status, enabled }: { status: ShareEntry["status"]; enabled: boolean }) {
+  if (status === "expired") return <span className="inline-flex rounded-full bg-slate-100 text-slate-500 px-2.5 py-0.5 text-[11px] font-medium">期限切れ</span>;
+  if (!enabled) return <span className="inline-flex rounded-full bg-amber-50 text-amber-600 border border-amber-200 px-2.5 py-0.5 text-[11px] font-medium">無効</span>;
+  return <span className="inline-flex rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-medium">有効中</span>;
+}
+
+function Toggle({ enabled, onChange, disabled = false }: { enabled: boolean; onChange: () => void; disabled?: boolean }) {
+  return (
+    <button
+      onClick={!disabled ? onChange : undefined}
+      className={`relative w-9 h-5 rounded-full transition-colors ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"} ${enabled ? "bg-emerald-500" : "bg-slate-200"}`}
+    >
+      <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${enabled ? "translate-x-4" : "translate-x-0.5"}`}/>
+    </button>
+  );
+}
+
 // ─── ShareModal ───────────────────────────────────────────────────────────────
 
 function ShareModal({item, onClose}:{item:Item; onClose:()=>void}){
@@ -244,7 +571,7 @@ function ShareModal({item, onClose}:{item:Item; onClose:()=>void}){
           </div>
         </div>
 
-        {/* Invite Tab (unchanged) */}
+        {/* Invite Tab */}
         {tab==='invite' ? (
           <div className="p-5">
             <div className="grid md:grid-cols-2 gap-4">
@@ -280,7 +607,6 @@ function ShareModal({item, onClose}:{item:Item; onClose:()=>void}){
             </div>
           </div>
         ) : (
-          /* ── アクセス条件タブ（新設計） ── */
           <PolicyTab item={item} />
         )}
 
@@ -308,7 +634,6 @@ function PolicyTab({item}:{item:Item}){
   function handleParse() {
     if (!nlInput.trim()) return;
     setParsing(true);
-    // デモ用：入力テキストを解析したふりをして条件タグを生成
     setTimeout(() => {
       setParsed(mockParse(nlInput, selectedPreset));
       setParsing(false);
@@ -380,7 +705,6 @@ function PolicyTab({item}:{item:Item}){
             </div>
             <p className="text-sm text-slate-700">{parsed.summary}</p>
 
-            {/* 追加：期限設定 */}
             <div className="pt-2 border-t border-slate-200 flex items-center gap-3">
               <label className="text-xs text-slate-500 shrink-0">期限を追加（任意）</label>
               <input
@@ -394,7 +718,6 @@ function PolicyTab({item}:{item:Item}){
               )}
             </div>
 
-            {/* アクセス拒否メッセージプレビュー */}
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
               <strong>アクセス条件を満たしていない人には：</strong><br/>
               「{parsed.gateMessage}」と表示されます
@@ -414,7 +737,6 @@ function PolicyTab({item}:{item:Item}){
         </div>
       )}
 
-      {/* 生成リンク */}
       {showLink && (
         <div className="rounded-xl border border-slate-200 bg-white p-4 text-xs">
           <div className="text-slate-500 mb-1">共有リンク（条件付き）</div>
@@ -491,9 +813,9 @@ function mockParse(input: string, presetId: string | null): ParsedCondition {
 
 // ─── Components ───────────────────────────────────────────────────────────────
 
-function SideLink({label, icon, active=false}:{label:string; icon:JSX.Element; active?:boolean}){
+function SideLink({label, icon, active=false, onClick}:{label:string; icon:JSX.Element; active?:boolean; onClick?:()=>void}){
   return (
-    <button className={`w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm border ${active? 'bg-slate-900 text-white border-slate-900':'bg-white border-slate-200 hover:bg-slate-50'}`}>
+    <button onClick={onClick} className={`w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm border ${active? 'bg-slate-900 text-white border-slate-900':'bg-white border-slate-200 hover:bg-slate-50'}`}>
       <span className="shrink-0">{icon}</span>
       <span className="truncate text-left">{label}</span>
     </button>
@@ -515,7 +837,7 @@ function Breadcrumb({segments}:{segments:string[]}){
 
 function Badge({label}:{label?:string}){
   if(!label) return null;
-  const map:any = {
+  const map:Record<string,string> = {
     "扉共有": "from-[#3B5BDB] via-[#15AABF] to-[#0EA5E9]",
     "E2EE": "from-[#1E293B] via-[#334155] to-[#64748B]",
     "条件付き": "from-[#0F766E] via-[#0E7490] to-[#0369A1]",
@@ -585,5 +907,5 @@ function ArchiveIcon({className="w-5 h-5"}:{className?:string}){return(<svg view
 function TrashIcon({className="w-5 h-5"}:{className?:string}){return(<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor"><path d="M4 7h16" strokeWidth="1.5"/><path d="M10 3h4a1 1 0 0 1 1 1v2H9V4a1 1 0 0 1 1-1Z" strokeWidth="1.5"/><rect x="6" y="7" width="12" height="13" rx="1" strokeWidth="1.5"/></svg>)}
 function TeamIcon({className="w-5 h-5"}:{className?:string}){return(<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor"><circle cx="9" cy="8" r="3" strokeWidth="1.5"/><circle cx="17" cy="9" r="2" strokeWidth="1.5"/><path d="M4 19a5 5 0 0 1 10 0" strokeWidth="1.5"/><path d="M14 19a4 4 0 0 1 7 0" strokeWidth="1.5"/></svg>)}
 function FolderIcon({className="w-5 h-5"}:{className?:string}){return(<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" strokeWidth="1.5"/></svg>)}
-function FileIcon({className="w-5 h-5", ext}:{className?:string; ext?:string}){return(<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor"><path d="M7 3h6l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" strokeWidth="1.5"/><path d="M13 3v6h6" strokeWidth="1.5"/></svg>)}
+function FileIcon({className="w-5 h-5", ext}:{className?:string; ext?:string}){void ext; return(<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor"><path d="M7 3h6l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" strokeWidth="1.5"/><path d="M13 3v6h6" strokeWidth="1.5"/></svg>)}
 function Avatar(){return(<div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#3B5BDB] via-[#15AABF] to-[#0EA5E9]" title="あなた"/>)}
